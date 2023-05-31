@@ -1,0 +1,39 @@
+html,
+body {
+  background-color:white;
+  font-family: sans-serif;
+  padding: 8px;
+  
+}
+td, th {
+  background-color: white;
+  border: 1px solid black;
+}
+.columnResizer {
+  /* background-color: rgb(182, 179, 179); */
+  width: 20px;
+  min-width: 20px;
+  max-width: 20px;
+  padding: 0 0 0 0;
+  border: none;
+  position: relative;
+  border: 1px solid black;
+  border-left: none;
+  border-right: none;
+}
+.columnResizer::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  content: "<>";
+}
+.column_resizer_body {
+  border: 1px solid black;
+  border-left: none;
+  border-right: none;
+}
+table {
+  width: 100%;
+  text-align: center;
+  border-spacing: 0px;
+}
