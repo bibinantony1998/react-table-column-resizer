@@ -70,7 +70,11 @@ export default class ColumnResizer extends React.Component {
         const moveDiff = this.startPos - this.mouseX;
         let newPrev = this.startWidthPrev - moveDiff;
 
+<<<<<<< HEAD
         if(!this.props.minWidth || newPrev >= this.props.minWidth || newPrev <= this.props.maxWidth) {
+=======
+        if((!this.props.minWidth || newPrev >= this.props.minWidth) && (!this.props.maxWidth || newPrev <= this.props.maxWidth)) {
+>>>>>>> fd95a73b0a47f3fec76bcf69f4fd080204e23bbc
             ele.previousSibling.style.width = newPrev + 'px';
             ele.previousSibling.style.minWidth = newPrev + 'px';
             ele.previousSibling.style.maxWidth = newPrev + 'px';
@@ -79,13 +83,14 @@ export default class ColumnResizer extends React.Component {
     }
 
     componentDidMount() {
+        if(this.props.minWidth && ele) {
+            ele.previousSibling.style.minWidth = this.props.minWidth + 'px';
+        }
         if (this.props.disabled) {
             return;
         }
         const ele = this.resizeRef.current;
-        if(this.props.minWidth && ele) {
-            ele.previousSibling.style.minWidth = this.props.minWidth + 'px';
-        }
+       
         this.addEventListenersToDocument();
     }
 
