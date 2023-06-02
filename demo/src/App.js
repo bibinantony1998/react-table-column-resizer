@@ -9,14 +9,15 @@ export const App = () => {
         <thead>
           <tr>
             <th>1</th>
-            <ColumnResize id={1} resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
+            <ColumnResize id={1} maxWidth={200}  resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
             <th>2</th>
-            <ColumnResize id={2} resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
-            <th>kjbslidhvsidvsjdbvjkbskjdvskjdvbskdvjksdv</th>
-            <ColumnResize disabled id={3} minWidth={400} resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
+            <ColumnResize id={2} maxWidth={200}  resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
+            <th>xsxsxsx</th>
+            <ColumnResize disabled id={3} minWidth={200} maxWidth={200} resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
             <th>minWidth 120 </th>
-            <ColumnResize id={4} minWidth={120} className="columnResizer" />
+            <ColumnResize id={4} maxWidth={200}  minWidth={120} className="columnResizer" />
             <th>5</th>
+            <ColumnResize id={4} maxWidth={200} minWidth={120} className="columnResizer" />
           </tr>
           </thead>
         <tbody>  
@@ -30,6 +31,7 @@ export const App = () => {
             <td>4</td>
             <td className="column_resizer_body" />
             <td>5</td>
+            <td className="column_resizer_body" />
           </tr>
         </tbody>
       </table>
