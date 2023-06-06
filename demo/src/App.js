@@ -9,9 +9,9 @@ export const App = () => {
         <thead>
           <tr>
             <th>1</th>
-            <ColumnResize id={1} maxWidth={200}  resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
+            <ColumnResize id={1} defaultWidth={400} minWidth={50}  resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
             <th>2</th>
-            <ColumnResize id={2} maxWidth={200}  resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
+            <ColumnResize id={2} resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
             <th>xsxsxsx</th>
             <ColumnResize disabled id={3} minWidth={200} maxWidth={200} resizeEnd={(width)=> console.log("resize end", width)} resizeStart={()=> console.log("resize start")} className="columnResizer" />
             <th>minWidth 120 </th>
