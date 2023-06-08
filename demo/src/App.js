@@ -5,7 +5,7 @@ import "./style.css";
 export const App = () => {
   return (
     <div>
-      <table>
+      <table className="column_resize_table">
         <thead>
           <tr>
             <th>1</th>
