@@ -37,8 +37,3 @@ table {
   text-align: center;
   border-spacing: 0px;
 }
-.column_resize_table th::before {
-  content: '';
-  display: block; 
-  width: var(--column_resize_before_width);
-}
