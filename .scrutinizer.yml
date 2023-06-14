@@ -1,10 +1,10 @@
-# filter:
-#     paths: ["src/*"]
-#     excluded_paths:
-#         - "tests/"
+filter:
+    paths: ["src/*"]
+    excluded_paths:
+        - "tests/"
                     
-# build:
-#     nodes:
-#         analysis:
-#             tests:
-#                 [js-scrutinizer-run]
+build:
+    nodes:
+        analysis:
+            tests:
+                [js-scrutinizer-run]
