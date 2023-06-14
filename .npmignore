@@ -4,3 +4,4 @@ tests
 .scrutinizer.yml
 .travis.yml
 jest.config.js
+.github
