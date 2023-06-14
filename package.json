@@ -24,7 +24,7 @@
     "build": "babel src -d dist",
     "start": "react-scripts start",
     "eject": "react-scripts eject",
-    "deploy": "gh-pages -d build",
+    "deploy": "gh-pages -d dist",
     "react-build": "CI=false && babel src -d dist",
     "prepublishOnly": "npm run build"
   },
