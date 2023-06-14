@@ -2,11 +2,31 @@
   "name": "react-table-column-resizer",
   "version": "1.2.3",
   "description": "Place in between `td` tags to automatically add resizing functionality.",
+  "keywords": [
+    "Table column resize",
+    "react table column resize",
+    "html table column resize",
+    "table resize component",
+    "Table column resize react",
+    "column resize",
+    "react",
+    "html",
+    "table",
+    "column",
+    "auto",
+    "resize"
+  ],
+  "author": "Bibin antony",
   "main": "index.js",
   "types": "./dist/column-resizer.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "babel src -d dist"
+    "build": "babel src -d dist",
+    "start": "react-scripts start",
+    "eject": "react-scripts eject",
+    "deploy": "gh-pages -d build",
+    "react-build": "CI=false && react-scripts build",
+    "prepublishOnly": "npm run build"
   },
   "module": "dist/column-resizer.jsx",
   "files": [
@@ -17,16 +37,7 @@
     "type": "git",
     "url": "git+https://github.com/bibinantony1998/react-table-column-resizer"
   },
-  "keywords": [
-    "react",
-    "html",
-    "table",
-    "column",
-    "auto",
-    "resize"
-  ],
-  "author": "Bibin Antony, Nik M",
-  "license": "GPL-3.0-only",
+  "license": "ISC",
   "homepage": "https://github.com/bibinantony1998/react-table-column-resizer#readme",
   "peerDependencies": {
     "react": "^18.2.0"
@@ -44,5 +55,17 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^5.0.4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
