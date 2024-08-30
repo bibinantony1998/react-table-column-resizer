@@ -210,6 +210,8 @@ function (_React$Component) {
         ref: this.resizeRef,
         style: style,
         disabled: this.props.disabled,
+        rowSpan: this.props.rowSpan ? this.props.rowSpan : 1,
+        colSpan: this.props.colSpan ? this.props.colSpan : 1,
         className: "column_resizer_own_class ".concat(this.props.disabled ? "disabled_column_resize" : "", " ").concat(this.props.className),
         onMouseDown: !this.props.disabled ? this.startDrag : null,
         onTouchStart: !this.props.disabled ? this.startDrag : null

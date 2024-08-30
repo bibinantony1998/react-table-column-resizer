@@ -11,7 +11,9 @@ declare module "react-table-column-resizer" {
         resizeEnd(width: number): void;
         className: string;
         disabled: boolean;
-        defaultWidth?: number
+        defaultWidth?: number;
+        rowSpan?: number;
+        colSpan?: number;
       }
     
     export default function ColumnResizer(props: Props): JSX.Element;
