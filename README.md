@@ -12,6 +12,9 @@ For react version 16 use version 1.0.2
 
 Demo: https://codesandbox.io/s/react-table-column-resizer-3yuqv
 
+### What Is New!:
+Now our component will support rowSpan and colSpan on the resize cell, using this we can enable resizing on complex tables with multi level header 
+
 ### Usage: 
 
 `npm install react-table-column-resizer`
@@ -37,13 +40,14 @@ import ColumnResizer from "react-table-column-resizer";
 const App = () => (
   <div>
     <table class="column_resize_table">
-      <tbody>
+      <thead>
         <tr>
-          <td>1</td>
+          <th>1</th>
           <ColumnResizer className="columnResizer" minWidth={0} />
-          <td>2</td>
+          <th>2</th>
         </tr>
-
+      </thead>
+      <tbody>
         <tr>
           <td>3</td>
           <td />
@@ -69,6 +73,8 @@ render(<App />, document.body);
 | resizeStart (optional) | function | function(): void | Trigger when resize start |
 | resizeEnd (optional) | function | function(): number | Trigger when resize end and return the last dragged column width |
 | className | string | `""` | Any custom classes. If set, default `width` and `backgroundColor` styles will not be applied |
+| rowSpan | number | 1 | Row span for table resize cell |
+| colSpan | number | 1 | Col span for table resize cell |
 
 
 ### Limitations
