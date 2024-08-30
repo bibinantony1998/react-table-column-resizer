@@ -159,8 +159,8 @@ export default class ColumnResizer extends React.Component {
             <th ref={this.resizeRef} 
                 style={style}
                 disabled={this.props.disabled}
-                rowSpan={this.props.rowSpan ?? 1}
-                colSpan={this.props.colSpan ?? 1}
+                rowSpan={this.props.rowSpan ? this.props.rowSpan : 1}
+                colSpan={this.props.colSpan ? this.props.colSpan : 1}
                 className={`column_resizer_own_class ${this.props.disabled ? "disabled_column_resize" : ""} ${this.props.className}`}
                 onMouseDown={!this.props.disabled ? this.startDrag : null}
                 onTouchStart={!this.props.disabled ? this.startDrag : null}
