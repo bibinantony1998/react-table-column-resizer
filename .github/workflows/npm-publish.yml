@@ -34,4 +34,4 @@ jobs:
       - run: npm run build
       - run: npm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.ACTIONS_DEPLOY_ACCESS_TOKEN_RESIZE}}
+          NODE_AUTH_TOKEN: ${{secrets.TABLE_RESIZE_TOKEN}}
