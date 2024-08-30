@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: 16
 
-    publish-npm:
+  publish-npm:
     needs: build
     runs-on: ubuntu-latest
     steps:
