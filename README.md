@@ -16,7 +16,7 @@ Demo: https://codesandbox.io/s/react-table-column-resizer-3yuqv
 Now our component will support rowSpan and colSpan on the resize cell, using this we can enable resizing on complex tables with multi level header 
 Now the base package is updated to support vite and latest ESM builds
 
---bug fix
+--bug fix -
 All props type made as optional, the type error from missing props values are removed
 
 ### Usage: 
