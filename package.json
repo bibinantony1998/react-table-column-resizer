@@ -29,6 +29,7 @@
     "prepublishOnly": "npm run build"
   },
   "module": "dist/column-resizer.jsx",
+  "type": "module",
   "files": [
     "dist",
     "README.md"
