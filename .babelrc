@@ -1,14 +1,16 @@
 {
-    "presets": [
-      [
-        "@babel/preset-env",
-        {
-          "modules": false,
-          "targets": {
-            "esmodules": true
-          }
-        }
-      ],
-      "@babel/preset-react"
-    ]
+  "env": {
+    "cjs": {
+      "presets": [
+        ["@babel/preset-env", { "modules": "commonjs" }],
+        "@babel/preset-react"
+      ]
+    },
+    "esm": {
+      "presets": [
+        ["@babel/preset-env", { "modules": false }],
+        "@babel/preset-react"
+      ]
+    }
   }
+}
