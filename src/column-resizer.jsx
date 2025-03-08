@@ -2,7 +2,6 @@
 //https://github.com/bibinantony1998/react-table-column-resizer
 
 import React from 'react';
-import { bool, number, string } from 'prop-types';
 
 export default class ColumnResizer extends React.Component {
 
@@ -177,7 +176,7 @@ ColumnResizer.defaultProps = {
 }
 
 ColumnResizer.propTypes = {
-    disabled: bool,
-    minWidth: number,
-    className: string,
-}
+    disabled: 'boolean',
+    minWidth: 'number',
+    className: 'string',
+};
