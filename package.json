@@ -1,6 +1,6 @@
 {
   "name": "react-table-column-resizer",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Place in between `td` tags to automatically add resizing functionality.",
   "keywords": [
     "Table column resize",
@@ -17,12 +17,14 @@
     "resize"
   ],
   "author": "Bibin antony",
-  "main": "dist/column-resizer.cjs.js",
-  "module": "dist/column-resizer.esm.js",
+  "main": "dist/cjs/column-resizer.js",
+  "module": "dist/esm/column-resizer.js",
   "types": "./dist/column-resizer.d.ts",
   "scripts": {
+    "build:cjs": "babel src -d dist/cjs --extensions \".js,.jsx,.ts,.tsx\" --env-name cjs",
+    "build:esm": "babel src -d dist/esm --extensions \".js,.jsx,.ts,.tsx\" --env-name esm",
+    "build": "npm run build:cjs && npm run build:esm",
     "test": "jest",
-    "build": "babel src -d dist --out-file-extension \".js\"",
     "start": "react-scripts start",
     "eject": "react-scripts eject",
     "deploy": "gh-pages -d dist",
@@ -43,15 +45,15 @@
     "react": "^18.2.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.2.2",
-    "@babel/preset-env": "^7.2.3",
-    "@babel/preset-react": "^7.0.0",
+    "@babel/cli": "^7.20.0",
+    "@babel/core": "^7.20.0",
+    "@babel/preset-env": "^7.20.0",
+    "@babel/preset-react": "^7.20.0",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^24.8.0",
-    "babel-loader": "^8.0.4",
+    "babel-jest": "^29.0.0",
+    "babel-loader": "^8.2.0",
     "enzyme": "^3.8.0",
-    "jest": "^24.8.0",
+    "jest": "^29.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^5.0.4"
@@ -71,8 +73,8 @@
   "private": false,
   "exports": {
     ".": {
-      "import": "./dist/column-resizer.esm.js",
-      "require": "./dist/column-resizer.cjs.js"
+      "import": "./dist/esm/column-resizer.js",
+      "require": "./dist/cjs/column-resizer.js"
     }
   }
 }
