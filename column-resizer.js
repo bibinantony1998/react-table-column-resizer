@@ -1,5 +1,6 @@
 //Author: Bibin Antony, Nik M
 //https://github.com/bibinantony1998/react-table-column-resizer
+
 import React from 'react';
 import { bool, number, string } from 'prop-types';
 export default class ColumnResizer extends React.Component {
@@ -14,62 +15,47 @@ export default class ColumnResizer extends React.Component {
     this.startWidthPrev = 0;
     this.lastDraggedWidth = 0;
     this.draggedCol = null;
-    this.resizeRef = React.createRef();
+    this.resizeRef = /*#__PURE__*/React.createRef();
   }
-
   startDrag() {
     if (this.props.disabled) {
       return;
     }
-
     this.draggedCol = this.props.id;
-
     if (this.props.resizeStart && this.draggedCol === this.props.id) {
       this.props.resizeStart();
     }
-
     this.dragging = true;
     this.startPos = this.mouseX;
     this.startWidthPrev = 0;
-
     if (this.resizeRef.current) {
-      let prevSibling = this.resizeRef.current.previousSibling;
-
+      var prevSibling = this.resizeRef.current.previousSibling;
       if (prevSibling) {
         this.startWidthPrev = prevSibling.clientWidth;
       }
     }
   }
-
   endDrag() {
     if (this.props.disabled) {
       return;
     }
-
     this.dragging = false;
-
     if (this.props.resizeEnd && this.draggedCol === this.props.id) {
       this.props.resizeEnd(this.lastDraggedWidth);
     }
-
     this.draggedCol = null;
   }
-
   onMouseMove(e) {
     if (this.props.disabled) {
       return;
     }
-
     this.mouseX = e.touches ? e.touches[0].screenX : e.screenX;
-
     if (!this.dragging) {
       return;
     }
-
-    const ele = this.resizeRef.current;
-    const moveDiff = this.startPos - this.mouseX;
-    let newPrev = this.startWidthPrev - moveDiff;
-
+    var ele = this.resizeRef.current;
+    var moveDiff = this.startPos - this.mouseX;
+    var newPrev = this.startWidthPrev - moveDiff;
     if ((!this.props.minWidth || newPrev >= this.props.minWidth) && (!this.props.maxWidth || newPrev <= this.props.maxWidth)) {
       ele.previousSibling.style.width = newPrev + 'px';
       ele.previousSibling.style.minWidth = newPrev + 'px';
@@ -78,10 +64,8 @@ export default class ColumnResizer extends React.Component {
       this.lastDraggedWidth = newPrev;
     }
   }
-
   componentDidMount() {
-    const ele = this.resizeRef.current;
-
+    var ele = this.resizeRef.current;
     if (ele) {
       if (this.props.defaultWidth) {
         ele.previousSibling.style.minWidth = this.props.defaultWidth + 'px';
@@ -95,7 +79,6 @@ export default class ColumnResizer extends React.Component {
         ele.previousSibling.style.setProperty('--column_resize_before_width', this.props.minWidth + 'px');
       }
     }
-
     if (this.props.disabled) {
       if (this.props.defaultWidth && ele) {
         ele.previousSibling.style.minWidth = this.props.defaultWidth + 'px';
@@ -103,75 +86,61 @@ export default class ColumnResizer extends React.Component {
         ele.previousSibling.style.maxWidth = this.props.defaultWidth + 'px';
         ele.previousSibling.style.setProperty('--column_resize_before_width', this.props.defaultWidth + 'px');
       }
-
       if (this.props.maxWidth && ele) {
         ele.previousSibling.style.maxWidth = this.props.maxWidth + 'px';
       }
-
       return;
     }
-
     this.addEventListenersToDocument();
   }
-
   componentWillUnmount() {
     if (this.props.disabled) {
       return;
     }
-
     this.removeEventListenersFromDocument();
   }
-
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.disabled && !this.props.disabled) {
       this.addEventListenersToDocument();
     }
-
     if (!prevProps.disabled && this.props.disabled) {
       this.removeEventListenersFromDocument();
     }
   }
-
   addEventListenersToDocument() {
     document.addEventListener('mousemove', this.onMouseMove);
     document.addEventListener('mouseup', this.endDrag);
     document.addEventListener("touchmove", this.onMouseMove);
     document.addEventListener("touchend", this.endDrag);
   }
-
   removeEventListenersFromDocument() {
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.endDrag);
     document.removeEventListener('touchmove', this.onMouseMove);
     document.removeEventListener('touchend', this.endDrag);
   }
-
   render() {
     var style = {
       userSelect: "none"
     };
-
     if (!this.props.disabled) {
       style.cursor = 'ew-resize';
     }
-
     if (this.props.className === "") {
       style.width = '6px';
       style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
     }
-
-    return React.createElement("th", {
+    return /*#__PURE__*/React.createElement("th", {
       ref: this.resizeRef,
       style: style,
       disabled: this.props.disabled,
       rowSpan: this.props.rowSpan ? this.props.rowSpan : 1,
       colSpan: this.props.colSpan ? this.props.colSpan : 1,
-      className: `column_resizer_own_class ${this.props.disabled ? "disabled_column_resize" : ""} ${this.props.className}`,
+      className: "column_resizer_own_class ".concat(this.props.disabled ? "disabled_column_resize" : "", " ").concat(this.props.className),
       onMouseDown: !this.props.disabled ? this.startDrag : null,
       onTouchStart: !this.props.disabled ? this.startDrag : null
     });
   }
-
 }
 ColumnResizer.defaultProps = {
   disabled: false,
