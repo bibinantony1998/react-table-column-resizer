@@ -1,6 +1,6 @@
 {
   "name": "react-table-column-resizer",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Place in between `td` tags to automatically add resizing functionality.",
   "keywords": [
     "Table column resize",
@@ -17,19 +17,18 @@
     "resize"
   ],
   "author": "Bibin antony",
-  "main": "index.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
   "types": "./dist/column-resizer.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "babel src -d dist",
+    "build": "babel src -d dist --out-file-extension \".js\"",
     "start": "react-scripts start",
     "eject": "react-scripts eject",
     "deploy": "gh-pages -d dist",
     "react-build": "CI=false && babel src -d dist",
     "prepublishOnly": "npm run build"
   },
-  "module": "dist/column-resizer.jsx",
-  "type": "module",
   "files": [
     "dist",
     "README.md"
@@ -69,5 +68,5 @@
       "last 1 safari version"
     ]
   },
-  "private" : false
+  "private": false
 }
