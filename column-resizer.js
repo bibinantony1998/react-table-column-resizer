@@ -5,7 +5,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 var _react = _interopRequireDefault(require("react"));
-var _propTypes = require("prop-types");
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
 //Author: Bibin Antony, Nik M
 //https://github.com/bibinantony1998/react-table-column-resizer
@@ -156,7 +155,7 @@ ColumnResizer.defaultProps = {
   className: ""
 };
 ColumnResizer.propTypes = {
-  disabled: _propTypes.bool,
-  minWidth: _propTypes.number,
-  className: _propTypes.string
+  disabled: 'boolean',
+  minWidth: 'number',
+  className: 'string'
 };
