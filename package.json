@@ -17,8 +17,8 @@
     "resize"
   ],
   "author": "Bibin antony",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/column-resizer.cjs.js",
+  "module": "dist/column-resizer.esm.js",
   "types": "./dist/column-resizer.d.ts",
   "scripts": {
     "test": "jest",
