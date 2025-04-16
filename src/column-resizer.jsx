@@ -174,9 +174,3 @@ ColumnResizer.defaultProps = {
     minWidth: 0,
     className: "",
 }
-
-ColumnResizer.propTypes = {
-    disabled: 'boolean',
-    minWidth: 'number',
-    className: 'string',
-};
