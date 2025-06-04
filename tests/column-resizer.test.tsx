@@ -1,7 +1,7 @@
 import React from 'react';
 import { act } from 'react'; // For React 18, act can be imported from 'react'
 // shallow has limitations with hooks, especially useEffect. Consider mount or React Testing Library for more robust tests.
-import { shallow, mount } from 'enzyme';
+// import { shallow, mount } from 'enzyme';
 
 // Vitest/RTL imports
 import { render, screen, fireEvent } from '@testing-library/react';
