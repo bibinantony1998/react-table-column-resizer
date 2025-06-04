@@ -1,21 +1,15 @@
-import { JSX } from "react";
-
-declare module "react-table-column-resizer" {
-
-
-	export interface Props {
-            minWidth?: number;
-	    maxWidth?: number | null;
-	    id: number;
-	    resizeStart?: () => void;
-	    resizeEnd?: (width: number) => void;
-	    className?: string;
-	    disabled?: boolean;
-	    defaultWidth?: number;
-	    rowSpan?: number;
-	    colSpan?: number;
-      }
-    
-    export default function ColumnResizer(props: Props): JSX.Element;
-
+import React from 'react';
+interface ColumnResizerProps {
+    disabled?: boolean;
+    minWidth?: number;
+    maxWidth?: number;
+    className?: string;
+    id?: string;
+    resizeStart?: () => void;
+    resizeEnd?: (newWidth: number) => void;
+    defaultWidth?: number;
+    rowSpan?: number;
+    colSpan?: number;
 }
+declare const ColumnResizer: React.FC<ColumnResizerProps>;
+export default ColumnResizer;

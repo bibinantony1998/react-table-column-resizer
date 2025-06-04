@@ -1,6 +1,11 @@
 {
     // Change this to match your project
-    "include": ["src/**/*"],
+    "include": [
+      "src/**/*",
+      "tests/**/*",
+      "./tests/setupVitest.ts",
+      "vitest.config.ts"
+    ],
   
     "compilerOptions": {
       // Tells TypeScript to read JS files, as
@@ -15,5 +20,7 @@
       // Removing this would place the .d.ts files
       // next to the .js files
       "outDir": "dist",
+      "jsx": "react-jsx",
+      "types": ["vitest/globals", "@testing-library/jest-dom"]
     },
   }

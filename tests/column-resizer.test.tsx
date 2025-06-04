@@ -3,9 +3,46 @@ import { act } from 'react'; // For React 18, act can be imported from 'react'
 // shallow has limitations with hooks, especially useEffect. Consider mount or React Testing Library for more robust tests.
 import { shallow, mount } from 'enzyme';
 
+// Vitest/RTL imports
+import { render, screen, fireEvent } from '@testing-library/react';
+// Note: setupVitest.ts handles jest-dom/extend-expect
+
 import ColumnResizer from '../src/column-resizer'; // Assuming this path is correct and it's a .tsx file
 
 describe('react-column-resizer', () => {
+    // Helper for dispatching mouse events
+    const dispatchMouseEvent = async (target: Node | Window, type: string, clientX: number) => {
+      await act(async () => {
+        fireEvent(
+          target,
+          new MouseEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            clientX: clientX,
+            screenX: clientX, // component uses screenX
+          })
+        );
+      });
+    };
+
+    const renderResizableTable = (props: Partial<React.ComponentProps<typeof ColumnResizer>> = {}) => {
+      const view = render(
+        <table>
+          <thead>
+            <tr>
+              <td data-testid="resizable-cell" style={{ width: '100px', minWidth: '0px', maxWidth: 'none' }}>Resizable</td>
+              <ColumnResizer {...props} />
+            </tr>
+          </thead>
+        </table>
+      );
+      const resizableCell = screen.getByTestId('resizable-cell');
+      // Ensure ColumnResizer itself is rendered, for example, by role
+      const columnResizerElement = screen.getByRole('columnheader');
+      return { ...view, resizableCell, columnResizerElement };
+    };
+
+    /*
     // Helper to get the <th> element; component now renders <th>
     const getTh = (wrapper) => wrapper.find('th');
 
@@ -414,5 +451,256 @@ describe('react-column-resizer', () => {
         act(() => {
             wrapper.unmount();
         });
+    });
+    */
+
+    it('renders one table header cell with correct default props and styles (Vitest/RTL)', () => {
+      render(
+        <table>
+          <thead>
+            <tr>
+              <td>Previous Column</td>
+              <ColumnResizer />
+            </tr>
+          </thead>
+        </table>
+      );
+
+      const resizerElement = screen.getByRole('columnheader');
+
+      expect(resizerElement).toBeInTheDocument();
+      expect(resizerElement).toHaveStyle('user-select: none');
+      expect(resizerElement).toHaveStyle('cursor: ew-resize');
+      expect(resizerElement).toHaveStyle('width: 6px');
+      expect(resizerElement).toHaveStyle('background-color: rgba(0, 0, 0, 0.1)');
+
+      expect(resizerElement).toHaveClass('column_resizer_own_class');
+      expect(resizerElement).not.toHaveClass('disabled_column_resize');
+    });
+
+    it('can be disabled (Vitest/RTL)', () => {
+      render(
+        <table>
+          <thead>
+            <tr>
+              <td>Previous Column</td>
+              <ColumnResizer disabled={true} />
+            </tr>
+          </thead>
+        </table>
+      );
+
+      const resizerElement = screen.getByRole('columnheader');
+
+      expect(resizerElement).toBeInTheDocument();
+      // Check style changes for disabled state
+      expect(resizerElement).toHaveStyle('user-select: none');
+
+      // Check that cursor is not 'ew-resize' when disabled
+      const currentCursorStyle = getComputedStyle(resizerElement).cursor;
+      expect(currentCursorStyle).not.toBe('ew-resize');
+
+      // Default styles should still apply if no custom className is given
+      expect(resizerElement).toHaveStyle('width: 6px');
+      expect(resizerElement).toHaveStyle('background-color: rgba(0, 0, 0, 0.1)');
+
+      // Check class changes for disabled state
+      expect(resizerElement).toHaveClass('column_resizer_own_class');
+      expect(resizerElement).toHaveClass('disabled_column_resize');
+    });
+
+    it('can accept a custom className (Vitest/RTL)', () => {
+      const customClassName = "test-custom-class";
+      render(
+        <table>
+          <thead>
+            <tr>
+              <td>Previous Column</td>
+              <ColumnResizer className={customClassName} />
+            </tr>
+          </thead>
+        </table>
+      );
+
+      const resizerElement = screen.getByRole('columnheader');
+      expect(resizerElement).toBeInTheDocument();
+
+      // Check that custom class is applied
+      expect(resizerElement).toHaveClass('column_resizer_own_class'); // Default base class
+      expect(resizerElement).toHaveClass(customClassName);
+
+      // Check that default width/backgroundColor are NOT applied when custom className is present
+      expect(resizerElement.style.width).toBeFalsy();
+      expect(resizerElement.style.backgroundColor).toBeFalsy();
+
+      // Default userSelect and cursor should still apply from the base style object in the component
+      expect(resizerElement).toHaveStyle('user-select: none');
+      expect(resizerElement).toHaveStyle('cursor: ew-resize');
+    });
+
+    it('registers and removes events on document when disabled prop changes (Vitest/RTL)', () => {
+      const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
+      const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
+      const relevantEvents = ['mousemove', 'mouseup', 'touchmove', 'touchend'];
+
+      // Helper to filter for relevant event listener calls
+      const getRelevantCalls = (spy: ReturnType<typeof vi.spyOn>) =>
+        spy.mock.calls.filter(call => relevantEvents.includes(call[0] as string));
+
+      // Initial render with disabled={true}
+      const { rerender } = render(
+        <table><thead><tr><td>Prev Col</td><ColumnResizer disabled={true} /></tr></thead></table>
+      );
+
+      // Initial state (disabled=true): No relevant listeners should be added by the component.
+      // Note: Spies are cleared after this check to ignore listeners potentially added by JSDOM setup or other sources.
+      expect(getRelevantCalls(addEventListenerSpy)).toHaveLength(0);
+      addEventListenerSpy.mockClear();
+      removeEventListenerSpy.mockClear();
+
+      // Transition 1: disabled changes from true to false
+      act(() => {
+        rerender(
+          <table><thead><tr><td>Prev Col</td><ColumnResizer disabled={false} /></tr></thead></table>
+        );
+      });
+
+      // Listeners should be added when disabled becomes false.
+      // The cleanup from the initial disabled=true render runs `removeEventListenersFromDocument`.
+      expect(getRelevantCalls(removeEventListenerSpy).length).toBe(4);
+      // Then the effect for disabled=false runs `addEventListenersToDocument`.
+      expect(getRelevantCalls(addEventListenerSpy).length).toBe(4);
+      relevantEvents.forEach(event =>
+        expect(addEventListenerSpy).toHaveBeenCalledWith(event, expect.any(Function))
+      );
+
+      // Clear spies for the next transition
+      addEventListenerSpy.mockClear();
+      removeEventListenerSpy.mockClear();
+
+      // Transition 2: disabled changes from false to true
+      act(() => {
+        rerender(
+          <table><thead><tr><td>Prev Col</td><ColumnResizer disabled={true} /></tr></thead></table>
+        );
+      });
+
+      // Listeners should be removed when disabled becomes true (cleanup from the false state).
+      expect(getRelevantCalls(removeEventListenerSpy).length).toBe(4);
+      relevantEvents.forEach(event =>
+        expect(removeEventListenerSpy).toHaveBeenCalledWith(event, expect.any(Function))
+      );
+      // No new relevant listeners should be added when it becomes disabled.
+      expect(getRelevantCalls(addEventListenerSpy).length).toBe(0);
+
+      // Restore spies to their original state
+      addEventListenerSpy.mockRestore();
+      removeEventListenerSpy.mockRestore();
+    });
+
+    it('applies defaultWidth to the previous sibling on initial mount (Vitest/RTL)', () => {
+      const defaultW = 120;
+      const { resizableCell } = renderResizableTable({ defaultWidth: defaultW });
+
+      expect(resizableCell.style.width).toBe(`${defaultW}px`);
+      expect(resizableCell.style.minWidth).toBe(`${defaultW}px`);
+      expect(resizableCell.style.maxWidth).toBe(`${defaultW}px`);
+      expect(resizableCell.style.getPropertyValue('--column_resize_before_width')).toBe(`${defaultW}px`);
+    });
+
+    it('initializes to minWidth if defaultWidth is not provided (Vitest/RTL)', () => {
+      const minW = 80;
+      // The helper initially styles resizable-cell with 100px width.
+      // The component should override this to minW.
+      const { resizableCell } = renderResizableTable({ minWidth: minW });
+
+      expect(resizableCell.style.width).toBe(`${minW}px`);
+      expect(resizableCell.style.minWidth).toBe(`${minW}px`);
+      expect(resizableCell.style.maxWidth).toBe(`${minW}px`);
+      expect(resizableCell.style.getPropertyValue('--column_resize_before_width')).toBe(`${minW}px`);
+    });
+
+    it('applies maxWidth style when disabled and defaultWidth is present (Vitest/RTL)', () => {
+      const defaultW = 100;
+      const maxW = 150;
+      const { resizableCell } = renderResizableTable({ defaultWidth: defaultW, maxWidth: maxW, disabled: true });
+
+      expect(resizableCell.style.width).toBe(`${defaultW}px`);
+      expect(resizableCell.style.maxWidth).toBe(`${maxW}px`);
+      expect(resizableCell.style.minWidth).toBe(`${defaultW}px`); // Due to defaultWidth
+      expect(resizableCell.style.getPropertyValue('--column_resize_before_width')).toBe(`${defaultW}px`);
+    });
+
+    it('can be dragged to resize the previous sibling (Vitest/RTL)', async () => {
+      const { resizableCell, columnResizerElement } = renderResizableTable();
+
+      // Initial width is 100px from the renderResizableTable helper's style
+      Object.defineProperty(resizableCell, 'clientWidth', { value: 100, configurable: true, writable: true });
+      expect(resizableCell.style.width).toBe('100px');
+
+      const initialScreenX = 200;
+      await dispatchMouseEvent(columnResizerElement, 'mousedown', initialScreenX);
+
+      // Drag 50px to the right (increase width)
+      // Component logic: newWidth = startWidthPrev - (startPos - currentMouseX)
+      // startWidthPrev = 100 (mocked clientWidth)
+      // startPos = initialScreenX = 200
+      // currentMouseX (e.screenX in component) = 250
+      // newWidth = 100 - (200 - 250) = 100 - (-50) = 150
+      const newScreenXIncrease = initialScreenX + 50;
+      await dispatchMouseEvent(document, 'mousemove', newScreenXIncrease);
+
+      expect(resizableCell.style.width).toBe('150px');
+      expect(resizableCell.style.minWidth).toBe('150px');
+      expect(resizableCell.style.maxWidth).toBe('150px');
+      expect(resizableCell.style.getPropertyValue('--column_resize_before_width')).toBe('150px');
+
+      await dispatchMouseEvent(document, 'mouseup', newScreenXIncrease);
+
+      // Drag 20px to the left (decrease width from 150)
+      // startWidthPrev will be 150 (the new width)
+      // startPos = newScreenXIncrease = 250
+      // currentMouseX = 230
+      // newWidth = 150 - (250 - 230) = 150 - 20 = 130
+      Object.defineProperty(resizableCell, 'clientWidth', { value: 150, configurable: true, writable: true }); // Update mock for next drag sequence
+      await dispatchMouseEvent(columnResizerElement, 'mousedown', newScreenXIncrease); // Mousedown at current position
+
+      const newScreenXDecrease = newScreenXIncrease - 20;
+      await dispatchMouseEvent(document, 'mousemove', newScreenXDecrease);
+
+      expect(resizableCell.style.width).toBe('130px');
+      expect(resizableCell.style.minWidth).toBe('130px');
+      expect(resizableCell.style.maxWidth).toBe('130px');
+      expect(resizableCell.style.getPropertyValue('--column_resize_before_width')).toBe('130px');
+
+      await dispatchMouseEvent(document, 'mouseup', newScreenXDecrease);
+    });
+
+    it('respects minWidth when dragging (Vitest/RTL)', async () => {
+      const minW = 50;
+      const initialW = 100;
+      const { resizableCell, columnResizerElement } = renderResizableTable({ minWidth: minW, defaultWidth: initialW });
+
+      Object.defineProperty(resizableCell, 'clientWidth', { value: initialW, configurable: true, writable: true });
+      // Expect initial width to be set by defaultWidth prop via useEffect
+      expect(resizableCell.style.width).toBe(`${initialW}px`);
+
+      const startScreenX = 300;
+      await dispatchMouseEvent(columnResizerElement, 'mousedown', startScreenX);
+
+      // Attempt to drag to a width smaller than minWidth
+      // newWidth = initialW - (startScreenX - newScreenX)
+      // e.g., drag left by 80px: newScreenX = startScreenX - 80
+      // newWidth = 100 - (300 - 220) = 100 - 80 = 20px.
+      // Should be clamped to minW (50px).
+      const newScreenX = startScreenX - (initialW - (minW - 30)); // Drag further than minWidth
+      await dispatchMouseEvent(document, 'mousemove', newScreenX);
+
+      expect(resizableCell.style.width).toBe(`${minW}px`);
+      expect(resizableCell.style.minWidth).toBe(`${minW}px`);
+      expect(resizableCell.style.maxWidth).toBe(`${minW}px`);
+      expect(resizableCell.style.getPropertyValue('--column_resize_before_width')).toBe(`${minW}px`);
+
+      await dispatchMouseEvent(document, 'mouseup', newScreenX);
     });
 })

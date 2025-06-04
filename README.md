@@ -13,6 +13,7 @@ For react version 16 use version 1.0.2
 Demo: https://codesandbox.io/s/react-table-column-resizer-3yuqv
 
 ### What Is New!:
+* Internal architecture modernized and tested with React 19, maintaining compatibility for React >=18.
 Now our component will support rowSpan and colSpan on the resize cell, using this we can enable resizing on complex tables with multi level header 
 Now the base package is updated to support vite and latest ESM builds
 
@@ -69,7 +70,7 @@ render(<App />, document.body);
 
 | Prop Name  | Type | Default Value | Description |
 | ------------- | ------------- | ------------- | ------------- |
-| id (mandatory) | number |  | Uniq id for each column resize  |
+| id (optional) | string |  | Uniq id for each column resize  |
 | disabled | bool | `false` | Set to true if you want to disable resizing |
 | minWidth (optional) | number | `undefined` | The minimum width for the columns (in pixels) |
 | maxWidth (optional) | number | null, `undefined` | The maximum width for the columns (in pixels) |
