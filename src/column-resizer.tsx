@@ -8,7 +8,7 @@ interface ColumnResizerProps {
     minWidth?: number;
     maxWidth?: number;
     className?: string;
-    id?: string;
+    id?: string | number;
     resizeStart?: () => void;
     resizeEnd?: (newWidth: number) => void;
     defaultWidth?: number;
