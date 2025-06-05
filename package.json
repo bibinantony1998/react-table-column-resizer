@@ -24,7 +24,7 @@
     "clean:dist": "rm -rf dist",
     "build:cjs": "babel src -d dist/cjs --extensions \".js,.jsx,.ts,.tsx\" --env-name cjs",
     "build:esm": "babel src -d dist/esm --extensions \".js,.jsx,.ts,.tsx\" --env-name esm",
-    "build": "npm run clean:dist && npx tsc && npm run build:cjs && npm run build:esm",
+    "build": "npm run clean:dist && npx tsc src/column-resizer.tsx --jsx react-jsx --declaration --emitDeclarationOnly --outDir dist && npm run build:cjs && npm run build:esm",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "start": "react-scripts start",
@@ -33,8 +33,11 @@
     "prepublishOnly": "npm run build"
   },
   "files": [
-    "dist",
-    "README.md"
+    "dist/cjs",
+    "dist/esm",
+    "dist/column-resizer.d.ts",
+    "README.md",
+    "license.txt"
   ],
   "repository": {
     "type": "git",
