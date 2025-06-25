@@ -5,105 +5,116 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * Props for the RowResizer component.
+ * Extends standard HTML <td> attributes, but omits 'onResize' if it exists to avoid conflicts.
+ * We also define our own logical `disabled` prop, separate from the HTML attribute.
  */
-interface RowResizerProps {
-    /** Disables the resizer. */
-    disabled?: boolean;
-    /** Minimum height the row can be resized to (in pixels). Defaults to 0. */
+interface RowResizerProps extends Omit<React.TdHTMLAttributes<HTMLTableCellElement>, 'onResize' | 'disabled'> {
+    /** Disables the resizer's drag functionality and applies disabled styling. */
+    disabled?: boolean; // This is our logical disabled prop
+    /** Minimum height the target row can be resized to (in pixels). Defaults to 0. */
     minHeight?: number;
-    /** Maximum height the row can be resized to (in pixels). No limit by default. */
+    /** Maximum height the target row can be resized to (in pixels). No limit by default. */
     maxHeight?: number;
-    /** Custom CSS class name for the resizer element. */
-    className?: string;
-    /** Optional ID for the resizer element, useful for testing or specific styling. */
-    id?: string | number;
     /** Callback function triggered when resizing starts. */
     resizeStart?: () => void;
-    /** Callback function triggered when resizing ends, providing the new height. */
+    /** Callback function triggered when resizing ends, providing the new height of the target row. */
     resizeEnd?: (newHeight: number) => void;
-    /** Default height for the row (in pixels). Applied on mount. */
+    /** Default height for the target row (in pixels). Applied on mount if the target row has no explicit height. */
     defaultHeight?: number;
-    /** Colspan for the `<td>` element rendered by RowResizer. */
-    colSpan?: number;
+    // className, id, colSpan, etc., are inherited from TdHTMLAttributes
 }
 
 /**
- * A React component that renders as a `<td>` element and allows resizing
- * the height of its parent `<tr>` element.
- * It should be placed as a cell within the table row that needs to be resizable.
+ * A React component that renders as a `<td>` element. It is intended to be placed
+ * in its own `<tr>` and allows resizing the height of the `<tr>` element
+ * immediately preceding it.
  */
 const RowResizer: React.FC<RowResizerProps> = ({
-    disabled = false,
+    // Component-specific logical props with defaults
+    disabled: logicalDisabled = false, // Use this for internal logic
     minHeight = 0,
     maxHeight,
-    className = "",
-    id, // Retained for consistency, though not critical for current core logic
     resizeStart,
     resizeEnd,
     defaultHeight,
-    colSpan,
+    // Standard HTML attributes (like className, id, colSpan, data-testid, HTML's disabled)
+    // are captured by ...restProps
+    className: propClassName, // Explicitly capture className to combine it
+    ...restProps
 }) => {
     const [dragging, setDragging] = useState(false);
     const [startPos, setStartPos] = useState(0); // Stores initial mouse Y position during drag
-    const [startHeightPrev, setStartHeightPrev] = useState(0); // Stores initial height of the parent row
+    const [startHeightTarget, setStartHeightTarget] = useState(0); // Stores initial height of the target row (previous sibling)
     const [lastDraggedHeight, setLastDraggedHeight] = useState(0); // Stores the last calculated height during drag
 
     const resizeRef = useRef<HTMLTableCellElement>(null); // Ref for the resizer's own <td> element
+
+    const getTargetRow = useCallback((): HTMLTableRowElement | null => {
+        if (resizeRef.current) {
+            // Ensure resizeRef.current.closest('tr') is not null before accessing previousElementSibling
+            const resizerRow = resizeRef.current.closest('tr');
+            if (resizerRow && resizerRow.previousElementSibling instanceof HTMLTableRowElement) {
+                return resizerRow.previousElementSibling;
+            }
+        }
+        return null;
+    }, []); // No dependencies needed as it only uses resizeRef.current
 
     /**
      * Initiates the dragging process.
      * Called on mousedown/touchstart on the resizer element.
      */
     const startDrag = useCallback((initialMouseY: number) => {
-        if (disabled) {
+        if (logicalDisabled) { // Use logicalDisabled for behavior
             return;
         }
+
+        const targetRow = getTargetRow();
+        if (!targetRow) {
+            console.warn("RowResizer: No previous sibling TR element found to resize.");
+            return;
+        }
+
         if (resizeStart) {
             resizeStart();
         }
         setDragging(true);
         setStartPos(initialMouseY);
+        setStartHeightTarget(targetRow.clientHeight);
 
-        setStartHeightPrev(0); // Reset before reading new height
-        if (resizeRef.current) {
-            const parentRow = resizeRef.current.closest('tr');
-            if (parentRow) {
-                setStartHeightPrev(parentRow.clientHeight);
-            }
-        }
-    }, [disabled, resizeStart]);
+    }, [logicalDisabled, resizeStart, getTargetRow]); // Corrected: disabled -> logicalDisabled
 
     /**
      * Finalizes the dragging process.
      * Called on mouseup/touchend on the document.
      */
     const endDrag = useCallback(() => {
-        if (disabled) { // Check disabled again in case it changed during drag
-            setDragging(false); // Ensure dragging state is reset
+        if (logicalDisabled) { // Use logicalDisabled
+            setDragging(false);
             return;
         }
         if (dragging && resizeEnd) {
             resizeEnd(lastDraggedHeight);
         }
         setDragging(false);
-    }, [disabled, resizeEnd, lastDraggedHeight, dragging]);
+    }, [logicalDisabled, resizeEnd, lastDraggedHeight, dragging]); // Corrected: disabled -> logicalDisabled
 
     /**
      * Handles mouse movement during dragging to resize the row.
      * Called on mousemove/touchmove on the document.
      */
     const onMouseMove = useCallback((e: MouseEvent | TouchEvent) => {
-        if (disabled || !dragging) {
+        if (logicalDisabled || !dragging) { // Use logicalDisabled
             return;
         }
 
         const currentMouseY = e instanceof TouchEvent ? e.touches[0].screenY : e.screenY;
+        const targetRow = getTargetRow();
 
-        const parentRow = resizeRef.current?.closest('tr');
-        if (!parentRow) return;
+        if (!targetRow) return;
 
         const moveDiff = currentMouseY - startPos;
-        let newHeight = startHeightPrev + moveDiff;
+        let newHeight = startHeightTarget + moveDiff;
 
         // Apply min/max height constraints
         if (minHeight !== undefined && newHeight < minHeight) {
@@ -113,25 +124,26 @@ const RowResizer: React.FC<RowResizerProps> = ({
             newHeight = maxHeight;
         }
 
-        parentRow.style.height = newHeight + 'px';
+        targetRow.style.height = newHeight + 'px';
         setLastDraggedHeight(newHeight);
 
-    }, [disabled, dragging, startPos, startHeightPrev, minHeight, maxHeight]);
+    }, [logicalDisabled, dragging, startPos, startHeightTarget, minHeight, maxHeight, getTargetRow]); // Corrected: disabled -> logicalDisabled
 
     /**
-     * Effect to apply initial height (defaultHeight or minHeight) to the parent row on mount
-     * or when these props change.
+     * Effect to apply initial height (defaultHeight or minHeight) to the target (previous sibling) row
+     * on mount or when these props change.
      */
     useEffect(() => {
-        const parentRow = resizeRef.current?.closest('tr');
-        if (parentRow) {
+        const targetRow = getTargetRow();
+        if (targetRow) {
             if (defaultHeight) {
-                parentRow.style.height = defaultHeight + 'px';
-            } else if (minHeight && !parentRow.style.height) { // Apply minHeight only if no height is already set
-                parentRow.style.height = minHeight + 'px';
+                targetRow.style.height = defaultHeight + 'px';
+            } else if (minHeight && !targetRow.style.height) { // Apply minHeight only if no height is already set
+                // Make sure minHeight is not undefined before using it. Default is 0.
+                targetRow.style.height = `${minHeight}px`;
             }
         }
-    }, [defaultHeight, minHeight]); // Dependencies: defaultHeight, minHeight
+    }, [defaultHeight, minHeight, getTargetRow]);
 
     /**
      * Effect to manage global event listeners for dragging.
@@ -152,47 +164,43 @@ const RowResizer: React.FC<RowResizerProps> = ({
             document.removeEventListener("touchend", endDrag as EventListener);
         };
 
-        if (dragging && !disabled) { // Only add when dragging starts
+        if (dragging && !logicalDisabled) { // Use logicalDisabled
             addEventListenersToDocument();
         }
 
-        return () => { // Cleanup function
-            removeEventListenersFromDocument(); // Always remove, covers cases where dragging stops or component unmounts
+        return () => {
+            removeEventListenersFromDocument();
         };
-    }, [dragging, disabled, onMouseMove, endDrag]);
+    }, [dragging, logicalDisabled, onMouseMove, endDrag]);
 
 
     const style: React.CSSProperties = {
         userSelect: "none",
-        touchAction: 'none', // Recommended for touch dragging
+        touchAction: 'none',
     };
 
-    if (!disabled) {
-        style.cursor = 'ns-resize'; // North-South resize cursor
+    if (!logicalDisabled) { // Use logicalDisabled
+        style.cursor = 'ns-resize';
     }
 
-    if (className === "") {
-        // Default visual style for the resizer TD if no custom class is provided
-        // This makes the TD a thin, horizontal bar.
-        style.width = '100%'; // Take full width of the cell it's in
-        style.height = '6px'; // A thin horizontal bar
+    // Combine provided className (propClassName) with component's own classes
+    const combinedClassName = `${propClassName || ''} row_resizer_own_class ${logicalDisabled ? "disabled_row_resize" : ""}`.trim();
+
+    // Apply default visual styles only if no custom className (propClassName) is provided
+    if (!propClassName) {
+        style.width = '100%';
+        style.height = '6px';
         style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
     }
 
-    // The RowResizer itself could be a <td>.
-    // Or, it could be a <div> inside a <td>, or a <tr> itself (less common for this pattern).
-    // For now, let's make it a <td>, similar to how ColumnResizer is a <th>.
-    // This means it would occupy a cell in the row.
-    // A more common UI might be a thin line *between* rows, or a handle on the row border.
-    // If used as a TD, it implies the resizable TR has an extra cell for this handle.
     return (
         <td
             ref={resizeRef}
             style={style}
-            colSpan={colSpan}
-            className={`row_resizer_own_class ${disabled ? "disabled_row_resize" : ""} ${className}`}
-            onMouseDown={!disabled ? (e) => startDrag(e.screenY) : undefined}
-            onTouchStart={!disabled ? (e) => startDrag(e.touches[0].screenY) : undefined}
+            className={combinedClassName}
+            onMouseDown={!logicalDisabled ? (e) => startDrag(e.screenY) : undefined}
+            onTouchStart={!logicalDisabled ? (e) => startDrag(e.touches[0].screenY) : undefined}
+            {...restProps} // Spreads id, colSpan, data-testid, AND the HTML disabled attribute etc.
         >
             {/* Content for the resizer cell, if any. Could be empty or a grip icon. */}
         </td>

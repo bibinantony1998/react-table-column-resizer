@@ -17,14 +17,14 @@
     "resize"
   ],
   "author": "Bibin antony",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/cjs/column-resizer.js",
+  "module": "dist/esm/column-resizer.js",
+  "types": "./dist/column-resizer.d.ts",
   "scripts": {
     "clean:dist": "rm -rf dist",
     "build:cjs": "babel src -d dist/cjs --extensions \".js,.jsx,.ts,.tsx\" --env-name cjs",
     "build:esm": "babel src -d dist/esm --extensions \".js,.jsx,.ts,.tsx\" --env-name esm",
-    "build": "npm run clean:dist && npx tsc src/index.tsx --jsx react-jsx --declaration --emitDeclarationOnly --outDir dist --declarationDir dist && npm run build:cjs && npm run build:esm",
+    "build": "npm run clean:dist && npx tsc src/column-resizer.tsx --jsx react-jsx --declaration --emitDeclarationOnly --outDir dist && npm run build:cjs && npm run build:esm",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "start": "react-scripts start",
@@ -33,9 +33,9 @@
     "prepublishOnly": "npm run build"
   },
   "files": [
-    "dist/cjs/",
-    "dist/esm/",
-    "dist/index.d.ts",
+    "dist/cjs",
+    "dist/esm",
+    "dist/column-resizer.d.ts",
     "README.md",
     "license.txt"
   ],
@@ -84,17 +84,8 @@
   "private": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    },
-    "./column-resizer": {
       "import": "./dist/esm/column-resizer.js",
       "require": "./dist/cjs/column-resizer.js"
-    },
-    "./row-resizer": {
-      "import": "./dist/esm/row-resizer.js",
-      "require": "./dist/cjs/row-resizer.js"
     }
   }
 }

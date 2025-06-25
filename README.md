@@ -92,11 +92,11 @@ render(<App />, document.body);
 
 A simple row resizer component for HTML 5 Tables. It allows you to dynamically adjust the height of table rows.
 
-Place the `RowResizer` component as a `<td>` within the `<tr>` element that you want to make resizable. Dragging the `RowResizer` handle will adjust the height of its parent row. Works with touch and mouse events.
+The `RowResizer` component renders as a `<td>` (table cell). It is designed to be placed in its own `<tr>` (table row), immediately following the `<tr>` you wish to make resizable. Dragging the `RowResizer` handle will adjust the height of the **previous sibling row**. It works with both touch and mouse events.
 
 ### Usage:
 
-`npm install react-table-column-resizer` (This package will now include both resizers)
+`npm install react-table-column-resizer` (This package now includes both `ColumnResizer` and `RowResizer`)
 
 ```jsx
 import React, { useState } from "react";
@@ -105,7 +105,7 @@ import { render } from "react-dom";
 import { ColumnResizer, RowResizer } from "react-table-column-resizer";
 
 const App = () => {
-  const [row1Height, setRow1Height] = useState(50);
+  const [dataRowHeight, setDataRowHeight] = useState(50); // Initial height for the data row
 
   return (
     <div>
@@ -114,25 +114,27 @@ const App = () => {
           <tr>
             <th>Header 1</th>
             <th>Header 2</th>
-            <th style={{width: '30px' /* Width for Handle Column */}}>H</th>
           </tr>
         </thead>
         <tbody>
-          <tr style={{ height: `${row1Height}px` }}>
-            <td>Row 1 Data 1</td>
-            <td>Row 1 Data 2</td>
-            {/* RowResizer is a td, controlling its parent tr's height */}
+          {/* This is the row that will be resized */}
+          <tr style={{ height: `${dataRowHeight}px` }}>
+            <td>Data Cell 1A</td>
+            <td>Data Cell 1B</td>
+          </tr>
+          {/* RowResizer is in its own TR, controlling the height of the TR above */}
+          <tr>
             <RowResizer
-              id="row1-resizer"
-              minHeight={30}
-              maxHeight={200}
-              onResizeEnd={(newHeight) => setRow1Height(newHeight)}
+              colSpan={2} // Span across all columns of the table
+              minHeight={30} // Minimum height for the data row above
+              maxHeight={200} // Maximum height for the data row above
+              defaultHeight={dataRowHeight} // Initial/default height for the data row above
+              onResizeEnd={(newHeight) => setDataRowHeight(newHeight)}
             />
           </tr>
           <tr>
-            <td>Row 2 Data 1</td>
-            <td>Row 2 Data 2</td>
-            <td></td>
+            <td>Another Data Cell 2A</td>
+            <td>Another Data Cell 2B</td>
           </tr>
         </tbody>
       </table>
@@ -148,16 +150,17 @@ render(<App />, document.body);
 | Prop Name      | Type                | Default Value | Description                                                                 |
 |----------------|---------------------|---------------|-----------------------------------------------------------------------------|
 | id (optional)  | string \| number    |               | Unique ID for the RowResizer instance.                                      |
-| disabled       | boolean             | `false`       | Set to true to disable resizing for this row.                               |
-| minHeight      | number              | `0`           | The minimum height for the row (in pixels).                                 |
-| maxHeight      | number              | `undefined`   | The maximum height for the row (in pixels).                                 |
-| defaultHeight  | number              | `undefined`   | The default height for the row (in pixels), applied on mount.               |
+| disabled       | boolean             | `false`       | Set to true to disable resizing functionality.                               |
+| minHeight      | number              | `0`           | The minimum height for the **targeted row (previous sibling)** (in pixels).   |
+| maxHeight      | number              | `undefined`   | The maximum height for the **targeted row (previous sibling)** (in pixels).   |
+| defaultHeight  | number              | `undefined`   | The default height for the **targeted row (previous sibling)** (in pixels), applied on mount. |
 | resizeStart    | `() => void`        | `undefined`   | Callback triggered when row resize starts.                                  |
-| resizeEnd      | `(h: number) => void` | `undefined`   | Callback triggered when row resize ends, returning the new row height.        |
+| resizeEnd      | `(h: number) => void` | `undefined`   | Callback triggered when row resize ends, returning the new height of the **targeted row**. |
 | className      | string              | `""`          | Custom CSS classes for the `<td>` resizer. If set, default visual styles (like `height`, `backgroundColor`) will not be applied. |
-| colSpan        | number              | `undefined`   | `colSpan` attribute for the `<td>` resizer element.                         |
+| colSpan        | number              | `undefined`   | `colSpan` attribute for the `<td>` resizer element. Useful to make the resizer span the full table width. |
 
 ### Notes on RowResizer:
-- The `RowResizer` component renders as a `<td>`. It should be placed as a cell within the `<tr>` you intend to resize.
-- Default styling makes it a thin, full-width (of its cell) horizontal bar. You can customize its appearance using the `className` prop.
-- Ensure the parent `<tr>` can have its height styled (e.g., it's not overly constrained by CSS or fixed-height content within its cells).
+- The `RowResizer` component renders as a `<td>`. It should be placed as the sole cell within its own `<tr>`, directly underneath the row you intend to resize.
+- Use the `colSpan` prop on `RowResizer` to make its `<td>` span all columns of your table, making it appear as a full-width resize handle.
+- Default styling makes the resizer `<td>` a thin horizontal bar. You can customize its appearance using the `className` prop.
+- Ensure the targeted `<tr>` (the one above the `RowResizer`'s row) can have its height styled (e.g., it's not overly constrained by CSS or fixed-height content within its cells).
