@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Resizer Demo</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 500px;
+            margin: 20px;
+            border: 1px solid #ccc;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            /* Ensure cells don't collapse completely making resize difficult */
+            min-width: 30px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .resizable-row {
+            /* Initial height for rows that will be resized */
+        }
+        .custom-row-resizer-class {
+            background-color: #e0e0e0;
+            border-top: 1px dashed #aaa;
+            border-bottom: 1px dashed #aaa;
+        }
+        /* Style for the column resizer handle if used */
+        .column_resizer_own_class {
+            /* background-color: lightblue !important; */ /* Example to see it clearly */
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <!-- Assuming you'll use a bundler like Vite or Parcel that handles script injection -->
+    <!-- For a quick demo, you might need to manually add script tags for React, ReactDOM, and your bundled main.tsx -->
+    <!-- For now, we'll assume a modern dev server setup -->
+    <script type="module" src="./main.tsx"></script>
+</body>
+</html>
