@@ -39,17 +39,19 @@ const App: React.FC = () => {
                         {/* <td /> Empty cell for CR if not spanning */}
                         <td>Row 1, Cell 3</td>
                     </tr>
-                    {/* RowResizer in its own TR, resizing the one above */}
-                    <tr>
-                        <RowResizer
-                            id="row1-rr"
-                            colSpan={5} // Span all table columns (3 headers + 2 resizers)
-                            resizeEnd={(h) => setRow1Height(h)}
-                            minHeight={30} // Min height for Row 1
-                            maxHeight={200} // Max height for Row 1
-                            defaultHeight={row1Height} // Set default height for Row 1
-                        />
-                    </tr>
+                    {/* RowResizer now renders its own <tr> containing a <td> handle. */}
+                    {/* It resizes the <tr> above it. */}
+                    <RowResizer
+                        id="row1-resizer-tr" // ID for the RowResizer's <tr>
+                        // className="my-row-resizer-tr" // Optional class for the RowResizer's <tr>
+                        colSpanTD={5} // colSpan for the inner <td> handle, should span all table columns
+                        resizeEnd={(h) => setRow1Height(h)}
+                        minHeight={30} // Min height for Row 1
+                        maxHeight={200} // Max height for Row 1
+                        defaultHeight={row1Height} // Set default height for Row 1
+                        // handleClassName="my-custom-handle" // Optional class for the inner <td> handle
+                        // handleStyle={{backgroundColor: 'lightblue'}} // Optional style for the inner <td> handle
+                    />
 
                     {/* Row 2 - Not directly resizable by a handle below it in this example */}
                     <tr>
@@ -66,18 +68,16 @@ const App: React.FC = () => {
                         {/* <td /> */}
                         <td>Row 3, Cell 3</td>
                     </tr>
-                     {/* RowResizer for Row 3, with a custom class */}
-                     <tr>
-                        <RowResizer
-                            id="row3-rr"
-                            colSpan={5} // Span all table columns
-                            className="custom-row-resizer-class"
-                            resizeEnd={(h) => setRow3Height(h)}
-                            minHeight={40}  // Min height for Row 3
-                            maxHeight={250} // Max height for Row 3
-                            defaultHeight={row3Height} // Set default height for Row 3
-                        />
-                    </tr>
+                    {/* RowResizer for Row 3 */}
+                    <RowResizer
+                        id="row3-resizer-tr" // ID for the RowResizer's <tr>
+                        colSpanTD={5} // Span all table columns for the inner <td> handle
+                        handleClassName="custom-row-resizer-class" // Custom class for the inner <td> handle
+                        resizeEnd={(h) => setRow3Height(h)}
+                        minHeight={40}  // Min height for Row 3
+                        maxHeight={250} // Max height for Row 3
+                        defaultHeight={row3Height} // Set default height for Row 3
+                    />
 
                     {/* Row 4 - Not resizable */}
                     <tr>
@@ -91,10 +91,12 @@ const App: React.FC = () => {
 
             <h3>Notes on RowResizer Usage:</h3>
             <ul>
-                <li>In this demo, <code>RowResizer</code> is placed in its own <code>&lt;tr&gt;</code>.</li>
+                <li>The <code>RowResizer</code> component now renders its own <code>&lt;tr&gt;</code> element, which internally contains a styled <code>&lt;td&gt;</code> as the draggable handle.</li>
+                <li>Place <code>&lt;RowResizer /&gt;</code> directly between the table rows (<code>&lt;tr&gt;</code> elements) in your <code>&lt;tbody&gt;</code>.</li>
                 <li>It controls the height of the <code>&lt;tr&gt;</code> element immediately *above* it.</li>
-                <li>The <code>colSpan</code> prop on <code>RowResizer</code> is used to make its `&lt;td&gt;` element span the full width of the table. Adjust this based on your table's column count.</li>
-                <li><code>defaultHeight</code>, <code>minHeight</code>, and <code>maxHeight</code> props on the <code>RowResizer</code> now apply to the row being resized (the one above it).</li>
+                <li>Use the <code>colSpanTD</code> prop on <code>RowResizer</code> to make its inner handle `&lt;td&gt;` span the full width of the table. Adjust this based on your table's column count.</li>
+                <li>Props like <code>className</code> or <code>id</code> passed to <code>&lt;RowResizer /&gt;</code> apply to the outer <code>&lt;tr&gt;</code> that it renders. Use <code>handleClassName</code> or <code>handleStyle</code> to customize the inner draggable `&lt;td&gt;` handle.</li>
+                <li><code>defaultHeight</code>, <code>minHeight</code>, and <code>maxHeight</code> props on the <code>RowResizer</code> apply to the row being resized (the one above it).</li>
             </ul>
         </div>
     );

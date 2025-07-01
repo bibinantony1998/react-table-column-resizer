@@ -1,12 +1,12 @@
 import React from 'react';
 import { act } from 'react';
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'; // Import cleanup
-// import '@testing-library/jest-dom'; // Ensure setupVitest.ts handles this or import directly
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 
-import RowResizer from '../src/row-resizer'; // Adjust path if necessary
+import RowResizer from '../src/row-resizer';
 
 describe('RowResizer', () => {
-    // Helper for dispatching mouse events
+    afterEach(cleanup); // Ensure cleanup after each test
+
     const dispatchMouseEvent = async (target: Node | Window, type: string, clientY: number) => {
       await act(async () => {
         fireEvent(
@@ -14,14 +14,13 @@ describe('RowResizer', () => {
           new MouseEvent(type, {
             bubbles: true,
             cancelable: true,
-            clientY: clientY, // Use clientY for vertical
-            screenY: clientY, // component uses screenY
+            clientY: clientY,
+            screenY: clientY,
           })
         );
       });
     };
 
-    // Helper for dispatching touch events
     const dispatchTouchEvent = async (target: Node | Window, type: string, clientY: number) => {
         await act(async () => {
             fireEvent(
@@ -36,12 +35,10 @@ describe('RowResizer', () => {
         });
     };
 
-    // Helper to render RowResizer for resizing the PREVIOUS sibling row
-    const renderPrevSiblingResizableTable = (
+    const renderRowResizerAndTarget = (
         resizerProps: Partial<React.ComponentProps<typeof RowResizer>> = {},
         targetRowInitialHeight = '100px',
-        targetRowTestId = "resizable-row",
-        resizerRowTestId = "resizer-row"
+        targetRowTestId = "resizable-row"
     ) => {
       const view = render(
         <table>
@@ -49,136 +46,104 @@ describe('RowResizer', () => {
             <tr data-testid={targetRowTestId} style={{ height: targetRowInitialHeight, minHeight: '0px', maxHeight: 'none' }}>
               <td>Target Row Content</td>
             </tr>
-            <tr data-testid={resizerRowTestId}>
-              <RowResizer {...resizerProps} data-testid="row-resizer-handle" />
-            </tr>
+            <RowResizer {...resizerProps} />
           </tbody>
         </table>
       );
       const targetResizableRow = screen.getByTestId(targetRowTestId);
-      // The RowResizer component itself is a <td>, which is a 'cell'.
-      // We find it by the testid given to RowResizer component itself.
-      const rowResizerHandleElement = screen.getByTestId('row-resizer-handle');
-
-      return { ...view, targetResizableRow, rowResizerHandleElement };
+      const resizerHandleTd = view.container.querySelector('.row_resizer_handle_cell');
+      if (!resizerHandleTd) {
+        throw new Error("Could not find the resizer handle <td> with class '.row_resizer_handle_cell'.");
+      }
+      return { ...view, targetResizableRow, rowResizerHandleElement: resizerHandleTd as HTMLElement };
     };
 
+    it('renders its own TR and a TD handle with correct default styles', () => {
+      const { container } = render(<table><tbody><RowResizer /></tbody></table>);
+      const handleCell = container.querySelector('td.row_resizer_handle_cell');
+      expect(handleCell).toBeInTheDocument();
 
-    it('renders one table cell with correct default props and styles', () => {
-      // This test checks the RowResizer's own appearance, so it doesn't need a preceding row.
-      // However, its functionality relies on a preceding row, which other tests will cover.
-      render(
-        <table><tbody><tr><RowResizer data-testid="row-resizer-handle" /></tr></tbody></table>
-      );
-
-      const resizerElement = screen.getByTestId('row-resizer-handle');
-
-      expect(resizerElement).toBeInTheDocument();
-      expect(resizerElement).toHaveStyle('user-select: none');
-      // The following style 'touch-action: none' is correctly set in the component,
-      // but this assertion may fail in some JSDOM environments.
-      // expect(resizerElement).toHaveStyle('touch-action: none');
-      expect(resizerElement).toHaveStyle('cursor: ns-resize');
-      // Default styles when className is ""
-      expect(resizerElement).toHaveStyle('width: 100%');
-      expect(resizerElement).toHaveStyle('height: 6px');
-      expect(resizerElement).toHaveStyle('background-color: rgba(0, 0, 0, 0.1)');
-
-      expect(resizerElement).toHaveClass('row_resizer_own_class');
-      expect(resizerElement).not.toHaveClass('disabled_row_resize');
+      if(handleCell) {
+          expect(handleCell).toHaveStyle('user-select: none');
+          expect(handleCell).toHaveStyle('cursor: ns-resize');
+          expect(handleCell).toHaveStyle('height: 6px');
+          expect(handleCell).toHaveStyle('background-color: rgba(0, 0, 0, 0.1)');
+          expect(handleCell).toHaveClass('row_resizer_handle_cell');
+          expect(handleCell).not.toHaveClass('disabled_row_resize_handle');
+      }
     });
 
-    it('can be disabled', () => {
-      render(
-         <table><tbody><tr><RowResizer disabled={true} /></tr></tbody></table>
-      );
-      const resizerElement = screen.getByRole('cell');
-
-      expect(resizerElement).toBeInTheDocument();
-      expect(resizerElement).toHaveStyle('user-select: none');
-      const currentCursorStyle = getComputedStyle(resizerElement).cursor;
-      expect(currentCursorStyle).not.toBe('ns-resize'); // Should not have resize cursor
-
-      // Default styles should still apply if no custom className is given
-      expect(resizerElement).toHaveStyle('width: 100%');
-      expect(resizerElement).toHaveStyle('height: 6px');
-
-      expect(resizerElement).toHaveClass('row_resizer_own_class');
-      expect(resizerElement).toHaveClass('disabled_row_resize');
+    it('applies disabled state to the handle TD', () => {
+      const { container } = render(<table><tbody><RowResizer disabled={true} /></tbody></table>);
+      const handleCell = container.querySelector('td.row_resizer_handle_cell');
+      expect(handleCell).toBeInTheDocument();
+      if (handleCell) {
+        const handleStyle = getComputedStyle(handleCell);
+        expect(handleStyle.cursor).not.toBe('ns-resize');
+        expect(handleCell).toHaveClass('disabled_row_resize_handle');
+      }
     });
 
-    it('can accept a custom className', () => {
-      const customClassName = "test-custom-row-resizer";
-      render(
-        <table><tbody><tr><RowResizer className={customClassName} data-testid="row-resizer-handle"/></tr></tbody></table>
+    it('applies custom handleClassName and handleStyle to the handle TD', () => {
+      const customHandleClassName = "test-custom-handle";
+      const customHandleStyle = { backgroundColor: 'blue', height: '10px' };
+      const { container } = render(
+        <table><tbody><RowResizer handleClassName={customHandleClassName} handleStyle={customHandleStyle} /></tbody></table>
       );
-      const resizerElement = screen.getByTestId('row-resizer-handle');
-      expect(resizerElement).toBeInTheDocument();
-      expect(resizerElement).toHaveClass('row_resizer_own_class');
-      expect(resizerElement).toHaveClass(customClassName);
+      const handleCell = container.querySelector('td.row_resizer_handle_cell');
+      expect(handleCell).toBeInTheDocument();
+      if (handleCell) {
+        expect(handleCell).toHaveClass(customHandleClassName);
+        expect(handleCell).toHaveClass('row_resizer_handle_cell');
+        expect(handleCell).toHaveStyle('background-color: rgb(0, 0, 255)'); // Corrected color
+        expect(handleCell).toHaveStyle('height: 10px');
+      }
+    });
 
-      // Default width/height/backgroundColor should NOT apply when custom className is present
-      expect(resizerElement.style.width).toBeFalsy();
-      expect(resizerElement.style.height).toBeFalsy();
-      expect(resizerElement.style.backgroundColor).toBeFalsy();
-
-      // Base styles like userSelect and cursor should still apply
-      expect(resizerElement).toHaveStyle('user-select: none');
-      expect(resizerElement).toHaveStyle('cursor: ns-resize');
+    it('applies passed className and other TR attributes to its own TR element', () => {
+        const trClassName = "my-custom-rowresizer-tr";
+        const trId = "my-rowresizer-tr-id";
+        const { container } = render(<table><tbody><RowResizer className={trClassName} id={trId} data-foo="bar" /></tbody></table>);
+        const resizerTr = container.querySelector('tbody tr:last-child');
+        expect(resizerTr).toBeInTheDocument();
+        if (resizerTr) {
+            expect(resizerTr).toHaveClass(trClassName);
+            expect(resizerTr.id).toBe(trId);
+            expect(resizerTr.getAttribute('data-foo')).toBe('bar');
+        }
     });
 
     it('applies defaultHeight to the PREVIOUS SIBLING row on initial mount', () => {
       const defaultH = 120;
-      // Initial height of target row is 50px
-      const { targetResizableRow } = renderPrevSiblingResizableTable({ defaultHeight: defaultH }, '50px');
-
-      // The component's useEffect should set the height of the target (previous) row
+      const { targetResizableRow } = renderRowResizerAndTarget({ defaultHeight: defaultH }, '50px');
       expect(targetResizableRow.style.height).toBe(`${defaultH}px`);
     });
 
     it('initializes PREVIOUS SIBLING row to minHeight if defaultHeight is not provided and row has no initial height', () => {
       const minH = 80;
-      const { rerender, getByTestId } = renderPrevSiblingResizableTable(
-        { minHeight: minH }, // RowResizer props
-        '', // Target row has no initial inline height style
-        "target-row-1"
-      );
+      const { getByTestId } = renderRowResizerAndTarget({ minHeight: minH }, '', "target-row-1");
       const targetRow1 = getByTestId('target-row-1');
       expect(targetRow1.style.height).toBe(`${minH}px`);
-
-      // Cleanup after the first render part of the test
       cleanup();
-
-      // If target row already has a height, minHeight prop shouldn't override it on mount without defaultHeight
-      const { getByTestId: getByTestId2 } = renderPrevSiblingResizableTable(
-        { minHeight: minH }, // RowResizer props
-        '100px', // Target row has initial height
-        "target-row-2" // Use a different testId for the target row in this part
-      );
+      const { getByTestId: getByTestId2 } = renderRowResizerAndTarget({ minHeight: minH }, '100px', "target-row-2");
       const targetRow2 = getByTestId2("target-row-2");
       expect(targetRow2.style.height).toBe('100px');
     });
 
     it('can be dragged to resize the PREVIOUS SIBLING row (mouse)', async () => {
       const initialH = 100;
-      const { targetResizableRow, rowResizerHandleElement } = renderPrevSiblingResizableTable({}, `${initialH}px`);
-
-      // Mock clientHeight for the component to read from the target row
+      // Removed the problematic duplicated test block here
+      const { targetResizableRow, rowResizerHandleElement } = renderRowResizerAndTarget({}, `${initialH}px`);
       Object.defineProperty(targetResizableRow, 'clientHeight', { value: initialH, configurable: true, writable: true });
       expect(targetResizableRow.style.height).toBe(`${initialH}px`);
-
       const initialScreenY = 200;
       await dispatchMouseEvent(rowResizerHandleElement, 'mousedown', initialScreenY);
-
       const newScreenYIncrease = initialScreenY + 50;
       await dispatchMouseEvent(document, 'mousemove', newScreenYIncrease);
       expect(targetResizableRow.style.height).toBe('150px');
       await dispatchMouseEvent(document, 'mouseup', newScreenYIncrease);
-
-      // Drag 20px up (decrease height from 150)
       Object.defineProperty(targetResizableRow, 'clientHeight', { value: 150, configurable: true, writable: true });
       await dispatchMouseEvent(rowResizerHandleElement, 'mousedown', newScreenYIncrease);
-
       const newScreenYDecrease = newScreenYIncrease - 20;
       await dispatchMouseEvent(document, 'mousemove', newScreenYDecrease);
       expect(targetResizableRow.style.height).toBe('130px');
@@ -188,19 +153,13 @@ describe('RowResizer', () => {
     it('respects minHeight when dragging PREVIOUS SIBLING row (mouse)', async () => {
         const minH = 50;
         const initialH = 100;
-        const { targetResizableRow, rowResizerHandleElement } = renderPrevSiblingResizableTable(
-            { minHeight: minH, defaultHeight: initialH },
-            `${initialH}px`
-        );
-
+        const { targetResizableRow, rowResizerHandleElement } = renderRowResizerAndTarget(
+            { minHeight: minH, defaultHeight: initialH }, `${initialH}px`);
         Object.defineProperty(targetResizableRow, 'clientHeight', { value: initialH, configurable: true, writable: true });
-        // defaultHeight prop should set the initial height of the target row
         expect(targetResizableRow.style.height).toBe(`${initialH}px`);
-
         const startScreenY = 300;
         await dispatchMouseEvent(rowResizerHandleElement, 'mousedown', startScreenY);
-
-        const newScreenY = startScreenY - (initialH - (minH - 30)); // Drag further than minHeight
+        const newScreenY = startScreenY - (initialH - (minH - 30));
         await dispatchMouseEvent(document, 'mousemove', newScreenY);
         expect(targetResizableRow.style.height).toBe(`${minH}px`);
         await dispatchMouseEvent(document, 'mouseup', newScreenY);
@@ -209,18 +168,13 @@ describe('RowResizer', () => {
     it('respects maxHeight when dragging PREVIOUS SIBLING row (mouse)', async () => {
         const maxH = 150;
         const initialH = 100;
-        const { targetResizableRow, rowResizerHandleElement } = renderPrevSiblingResizableTable(
-            { maxHeight: maxH, defaultHeight: initialH },
-            `${initialH}px`
-        );
-
+        const { targetResizableRow, rowResizerHandleElement } = renderRowResizerAndTarget(
+            { maxHeight: maxH, defaultHeight: initialH }, `${initialH}px`);
         Object.defineProperty(targetResizableRow, 'clientHeight', { value: initialH, configurable: true, writable: true });
         expect(targetResizableRow.style.height).toBe(`${initialH}px`);
-
         const startScreenY = 200;
         await dispatchMouseEvent(rowResizerHandleElement, 'mousedown', startScreenY);
-
-        const newScreenY = startScreenY + ( (maxH + 30) - initialH ); // Drag further than maxHeight
+        const newScreenY = startScreenY + ( (maxH + 30) - initialH );
         await dispatchMouseEvent(document, 'mousemove', newScreenY);
         expect(targetResizableRow.style.height).toBe(`${maxH}px`);
         await dispatchMouseEvent(document, 'mouseup', newScreenY);
@@ -228,14 +182,11 @@ describe('RowResizer', () => {
 
     it('can be dragged to resize the PREVIOUS SIBLING row (touch)', async () => {
         const initialH = 80;
-        const { targetResizableRow, rowResizerHandleElement } = renderPrevSiblingResizableTable({}, `${initialH}px`);
-
+        const { targetResizableRow, rowResizerHandleElement } = renderRowResizerAndTarget({}, `${initialH}px`);
         Object.defineProperty(targetResizableRow, 'clientHeight', { value: initialH, configurable: true, writable: true });
         expect(targetResizableRow.style.height).toBe(`${initialH}px`);
-
         const initialScreenY = 100;
         await dispatchTouchEvent(rowResizerHandleElement, 'touchstart', initialScreenY);
-
         const newScreenY = initialScreenY + 30;
         await dispatchTouchEvent(document, 'touchmove', newScreenY);
         expect(targetResizableRow.style.height).toBe('110px');
@@ -244,36 +195,26 @@ describe('RowResizer', () => {
 
     it('calls resizeStart callback when dragging starts (targeting previous sibling)', async () => {
         const mockResizeStart = vi.fn();
-        // Important: The targetResizableRow needs to exist for getTargetRow() in startDrag to succeed.
-        const { targetResizableRow, rowResizerHandleElement } = renderPrevSiblingResizableTable(
-            { resizeStart: mockResizeStart },
-            '100px'
-        );
-        // Mock clientHeight for the target row
+        const { targetResizableRow, rowResizerHandleElement } = renderRowResizerAndTarget(
+            { resizeStart: mockResizeStart }, '100px');
         Object.defineProperty(targetResizableRow, 'clientHeight', { value: 100, configurable: true, writable: true });
-
         await dispatchMouseEvent(rowResizerHandleElement, 'mousedown', 200);
         expect(mockResizeStart).toHaveBeenCalledTimes(1);
-        await dispatchMouseEvent(document, 'mouseup', 200); // Cleanup
+        await dispatchMouseEvent(document, 'mouseup', 200);
     });
 
     it('calls resizeEnd callback with the final height when dragging ends (targeting previous sibling)', async () => {
         const mockResizeEnd = vi.fn();
         const initialH = 100;
-        const dragDistance = 40; // drag down
+        const dragDistance = 40;
         const finalH = initialH + dragDistance;
-
-        const { targetResizableRow, rowResizerHandleElement } = renderPrevSiblingResizableTable(
-            { resizeEnd: mockResizeEnd, defaultHeight: initialH },
-            `${initialH}px`
-        );
+        const { targetResizableRow, rowResizerHandleElement } = renderRowResizerAndTarget(
+            { resizeEnd: mockResizeEnd, defaultHeight: initialH }, `${initialH}px`);
         Object.defineProperty(targetResizableRow, 'clientHeight', { value: initialH, configurable: true, writable: true });
-
         const startY = 200;
         await dispatchMouseEvent(rowResizerHandleElement, 'mousedown', startY);
         await dispatchMouseEvent(document, 'mousemove', startY + dragDistance);
         await dispatchMouseEvent(document, 'mouseup', startY + dragDistance);
-
         expect(mockResizeEnd).toHaveBeenCalledTimes(1);
         expect(mockResizeEnd).toHaveBeenCalledWith(finalH);
     });
@@ -288,25 +229,28 @@ describe('RowResizer', () => {
 
         const mockResizeStartForEventTest = vi.fn();
 
-        // Setup table with a preceding row for RowResizer to target
-        const { rerender, getByTestId } = render(
+        const { rerender, getByTestId, container } = render(
             <table>
               <tbody>
                 <tr data-testid="target-row-for-event-test" style={{ height: '100px' }}><td>Target</td></tr>
-                <tr><RowResizer data-testid="event-test-resizer" disabled={false} resizeStart={mockResizeStartForEventTest} /></tr>
+                <RowResizer data-testid="row-resizer-tr-for-events" disabled={false} resizeStart={mockResizeStartForEventTest} />
               </tbody>
             </table>
         );
-        const resizerElement = getByTestId('event-test-resizer');
+
+        let resizerHandleElement = container.querySelector('tr[data-testid="row-resizer-tr-for-events"] .row_resizer_handle_cell');
+        expect(resizerHandleElement).toBeInTheDocument();
+
         const targetRowForEvents = getByTestId('target-row-for-event-test');
         Object.defineProperty(targetRowForEvents, 'clientHeight', { value: 100, configurable: true, writable: true });
 
-
         // 1. Start dragging (disabled=false)
-        await dispatchMouseEvent(resizerElement, 'mousedown', 100);
-        expect(getRelevantCalls(addEventListenerSpy).length).toBe(4); // mousemove, mouseup, touchmove, touchend
+        if (resizerHandleElement) await dispatchMouseEvent(resizerHandleElement, 'mousedown', 100);
+        expect(mockResizeStartForEventTest).toHaveBeenCalledTimes(1);
+        expect(getRelevantCalls(addEventListenerSpy).length).toBe(4);
         addEventListenerSpy.mockClear();
         removeEventListenerSpy.mockClear();
+        mockResizeStartForEventTest.mockClear();
 
         // 2. Stop dragging
         await dispatchMouseEvent(document, 'mouseup', 100);
@@ -315,7 +259,23 @@ describe('RowResizer', () => {
         removeEventListenerSpy.mockClear();
 
         // 3. Test disabled prop change while NOT dragging
-        // Spies are clear before this from previous steps or should be cleared.
+        addEventListenerSpy.mockClear();
+        removeEventListenerSpy.mockClear();
+
+        act(() => {
+          rerender(
+            <table>
+              <tbody>
+                <tr data-testid="target-row-for-event-test" style={{ height: '100px' }}><td>Target</td></tr>
+                <RowResizer data-testid="row-resizer-tr-for-events" disabled={true} resizeStart={mockResizeStartForEventTest} />
+              </tbody>
+            </table>
+          );
+        });
+        resizerHandleElement = container.querySelector('tr[data-testid="row-resizer-tr-for-events"] .row_resizer_handle_cell'); // Re-query after rerender
+        expect(getRelevantCalls(addEventListenerSpy).length).toBe(0);
+        expect(getRelevantCalls(removeEventListenerSpy).length).toBe(4);
+
         addEventListenerSpy.mockClear();
         removeEventListenerSpy.mockClear();
         mockResizeStartForEventTest.mockClear();
@@ -325,33 +285,14 @@ describe('RowResizer', () => {
             <table>
               <tbody>
                 <tr data-testid="target-row-for-event-test" style={{ height: '100px' }}><td>Target</td></tr>
-                {/* Pass the mock to RowResizer during rerender as well */}
-                <tr><RowResizer data-testid="event-test-resizer" disabled={true} resizeStart={mockResizeStartForEventTest} /></tr>
+                <RowResizer data-testid="row-resizer-tr-for-events" disabled={false} resizeStart={mockResizeStartForEventTest} />
               </tbody>
             </table>
           );
         });
-        // Previous effect (disabled=false, dragging=false) cleanup runs.
-        expect(getRelevantCalls(addEventListenerSpy).length).toBe(0); // New effect (disabled=true) doesn't add.
-        expect(getRelevantCalls(removeEventListenerSpy).length).toBe(4); // Old effect's cleanup.
-
-        addEventListenerSpy.mockClear();
-        removeEventListenerSpy.mockClear();
-        mockResizeStartForEventTest.mockClear();
-
-        act(() => {
-          rerender(
-            <table>
-              <tbody>
-                <tr data-testid="target-row-for-event-test" style={{ height: '100px' }}><td>Target</td></tr>
-                <tr><RowResizer data-testid="event-test-resizer" disabled={false} resizeStart={mockResizeStartForEventTest} /></tr>
-              </tbody>
-            </table>
-          );
-        });
-        // Previous effect (disabled=true, dragging=false) cleanup runs.
-        expect(getRelevantCalls(addEventListenerSpy).length).toBe(0); // New effect (disabled=false, not dragging) doesn't add.
-        expect(getRelevantCalls(removeEventListenerSpy).length).toBe(4); // Old effect's cleanup.
+        resizerHandleElement = container.querySelector('tr[data-testid="row-resizer-tr-for-events"] .row_resizer_handle_cell'); // Re-query
+        expect(getRelevantCalls(addEventListenerSpy).length).toBe(0);
+        expect(getRelevantCalls(removeEventListenerSpy).length).toBe(4);
 
         // Clear spies for section 4
         addEventListenerSpy.mockClear();
@@ -359,8 +300,8 @@ describe('RowResizer', () => {
         mockResizeStartForEventTest.mockClear();
 
         // 4. Start dragging, then disable component (should remove listeners)
-        await dispatchMouseEvent(resizerElement, 'mousedown', 100); // Adds listeners
-        expect(mockResizeStartForEventTest).toHaveBeenCalledTimes(1); // Check if startDrag was entered
+        if (resizerHandleElement) await dispatchMouseEvent(resizerHandleElement, 'mousedown', 100);
+        expect(mockResizeStartForEventTest).toHaveBeenCalledTimes(1);
         expect(getRelevantCalls(addEventListenerSpy).length).toBe(4);
         addEventListenerSpy.mockClear();
         removeEventListenerSpy.mockClear();
@@ -371,13 +312,11 @@ describe('RowResizer', () => {
               <table>
                 <tbody>
                   <tr data-testid="target-row-for-event-test" style={{ height: '100px' }}><td>Target</td></tr>
-                  <tr><RowResizer data-testid="event-test-resizer" disabled={true} resizeStart={mockResizeStartForEventTest} /></tr>
+                  <RowResizer data-testid="row-resizer-tr-for-events" disabled={true} resizeStart={mockResizeStartForEventTest} />
                 </tbody>
               </table>
             );
         });
-        // The useEffect [dragging, disabled, ...] cleanup for disabled changing to true while dragging=true
-        // should trigger removeEventListenersFromDocument
         expect(getRelevantCalls(removeEventListenerSpy).length).toBe(4);
 
         addEventListenerSpy.mockRestore();
