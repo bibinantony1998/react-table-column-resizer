@@ -75,7 +75,7 @@ const ColumnResizer: React.FC<ColumnResizerProps> = ({
             return;
         }
         
-        const currentMouseX = e instanceof TouchEvent ? e.touches[0].screenX : e.screenX;
+        const currentMouseX = "touches" in e ? e.touches[0].screenX : e.screenX;
         // setMouseX(currentMouseX); // mouseX state is not strictly needed for onMouseMove's core logic
 
         if (!dragging) {
