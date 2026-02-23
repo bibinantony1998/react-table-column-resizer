@@ -84,6 +84,7 @@
   "private": false,
   "exports": {
     ".": {
+      "types": "./dist/column-resizer.d.ts",
       "import": "./dist/esm/column-resizer.js",
       "require": "./dist/cjs/column-resizer.js"
     }
