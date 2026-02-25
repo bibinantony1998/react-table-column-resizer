@@ -16,7 +16,8 @@
     "auto",
     "resize"
   ],
-  "author": "Bibin antony",
+  "author": "Bibin Antony <bibinantony1998@gmail.com>",
+  "homepage": "https://bibinantony1998.github.io/my-portfolio/#npm-packages",
   "main": "dist/cjs/column-resizer.js",
   "module": "dist/esm/column-resizer.js",
   "types": "./dist/column-resizer.d.ts",
