@@ -1,4 +1,4 @@
-## React Table Column Resizer 
+## React Table Column Resizer | A React component by **Bibin Antony**
 A simple column resizer component for Html 5 Table
 
 Inspired from  React Column Resizer, Fixed width and drag problems
@@ -85,3 +85,4 @@ render(<App />, document.body);
 ### Limitations
 - You have to put filler `<td/>`'s in rows
 - The width in table column need to be in logic of table css, it must leave a column without max-width
+
